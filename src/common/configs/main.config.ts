@@ -1,6 +1,6 @@
 import env from 'env-var';
+import 'dotenv/config';
 
 export const mainConfig = {
-  host: env.get('BACKEND_HOST').required().asString(),
-  port: env.get('BACKEND_PORT').required().asPortNumber()
-}
+  port: env.get('BACKEND_PORT').required().asPortNumber(),
+};
