@@ -2,19 +2,22 @@ import axios, { AxiosInstance, AxiosResponse } from 'axios';
 import { HttpStatus, NotFoundException } from '@nestjs/common';
 import { AuctionDataRdo } from '#src/core/auctions/rdo/auction-data.rdo';
 import { SendToMlDto } from '#src/core/auctions/dto/send-to-ml.dto';
-import { SupplyScheduleDto } from '#src/core/auctions/dto/supply-schedule.dto';
-import { PositionDto } from '#src/core/auctions/dto/position.dto';
+import { mainConfig } from '#src/common/configs/main.config';
 
 export class AuctionsService {
-  private readonly axiosInstance: AxiosInstance;
+  private readonly mosRuServiceInstance: AxiosInstance;
+  private readonly MLServiceInstance: AxiosInstance;
 
   constructor() {
-    this.axiosInstance = axios.create({
+    this.mosRuServiceInstance = axios.create({
       baseURL: 'https://zakupki.mos.ru',
       headers: {
         'user-agent':
           'Mozilla/5.0 (Windows NT 10.0; Win64; x64) AppleWebKit/537.36 (KHTML, like Gecko) Chrome/130.0.0.0 Safari/537.36',
       },
+    });
+    this.MLServiceInstance = axios.create({
+      baseURL: mainConfig.ml_url,
     });
   }
 
@@ -22,7 +25,7 @@ export class AuctionsService {
     const auctionId = this.parseAuctionId(url);
 
     const auctionResponse: AxiosResponse<AuctionDataRdo> =
-      await this.axiosInstance.get(
+      await this.mosRuServiceInstance.get(
         '/newapi/api/Auction/Get?auctionId=' + auctionId,
       );
 
@@ -36,8 +39,9 @@ export class AuctionsService {
     const MLDto = this.formJsonForML(auctionResponse.data);
 
     //TODO POST TO ML
+    const answer = await this.MLServiceInstance.post('/todo', MLDto);
 
-    return;
+    return answer;
   }
 
   private parseAuctionId(url: string) {
