@@ -1,4 +1,3 @@
-import { TableRdo } from '#src/core/results/rdo/table.rdo';
 import { GroupEntity } from '#src/core/results/entitites/group.entity';
 import { AnalyticsRdo } from '#src/core/results/rdo/analytics.rdo';
 import { mainConfig } from '#src/common/configs/main.config';

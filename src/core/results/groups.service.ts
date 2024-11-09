@@ -1,6 +1,7 @@
 import { Injectable } from '@nestjs/common';
 import { InjectRepository } from '@nestjs/typeorm';
 import {
+  DeepPartial,
   FindManyOptions,
   FindOneOptions,
   Repository,
@@ -23,7 +24,7 @@ export class GroupsService {
     return await this.groupsRepository.findOne(options);
   }
 
-  async save(entities: GroupEntity) {
+  async save(entities: DeepPartial<GroupEntity>) {
     return await this.groupsRepository.save(entities);
   }
 }

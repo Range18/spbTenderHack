@@ -1,40 +1,68 @@
-import axios, { AxiosInstance, AxiosResponse } from 'axios';
+import { AxiosResponse } from 'axios';
 import { HttpStatus, Injectable, NotFoundException } from '@nestjs/common';
 import { AuctionDataRdo } from '#src/core/auctions/rdo/auction-data.rdo';
 import { SendToMlDto } from '#src/core/auctions/dto/send-to-ml.dto';
-import { mainConfig } from '#src/common/configs/main.config';
 import { MosRuApiService } from '#src/core/mos-ru-api/mos-ru-api.service';
 import { FilesService } from '#src/core/files/files.service';
 import { ReasonsToClose } from '#src/core/auctions/types/reasons-to-close.enum';
 import { AnalyticsRdo } from '#src/core/results/rdo/analytics.rdo';
 import { CheckAuctionsDto } from '#src/core/auctions/dto/check-auctions.dto';
+import { GroupsService } from '#src/core/results/groups.service';
+import { ResultsService } from '#src/core/results/results.service';
+import { MlApiService } from '#src/core/ml-api/ml-api.service';
+import { CriteriaService } from '#src/core/results/criteria.service';
 
 @Injectable()
 export class AuctionsService {
-  private readonly MLServiceInstance: AxiosInstance;
-
   constructor(
     private readonly mosRuApiService: MosRuApiService,
     private readonly filesService: FilesService,
-  ) {
-    this.MLServiceInstance = axios.create({
-      baseURL: mainConfig.mlUrl,
-    });
-  }
+    private readonly groupService: GroupsService,
+    private readonly resultsService: ResultsService,
+    private readonly criteriaService: CriteriaService,
+    private readonly mlApiService: MlApiService,
+  ) {}
 
-  async checkAuctions(
-    checkAuctionsDto: CheckAuctionsDto,
-  ): Promise<AnalyticsRdo[]> {
-    const results = [];
-    for (const url of checkAuctionsDto.urls) {
-      results.push(await this.checkAuction(url, checkAuctionsDto.criteria));
+  async checkAuctions(checkAuctionsDto: CheckAuctionsDto) {
+    const group = await this.groupService.save({});
+    const auctionIds = checkAuctionsDto.urls.map((url) =>
+      this.parseAuctionId(url),
+    );
+
+    for (const auctionId of auctionIds) {
+      const resultEntity = await this.resultsService.save({
+        auctionId: auctionId,
+      });
+      group.results.push(resultEntity);
     }
-    return results;
+    await this.groupService.save(group);
+
+    const criteria = checkAuctionsDto.criteria.sort();
+    for (const url of checkAuctionsDto.urls) {
+      const result = await this.checkAuction(url, criteria);
+      const auctionId = this.parseAuctionId(url);
+      const resultEntity = await this.resultsService.updateOne(
+        { auctionId },
+        {
+          isPublished: result.isPublished,
+          reason: result.reason,
+          isCompleted: true,
+          criteria: result.table,
+        },
+      );
+
+      for (const criteria of resultEntity.criteria) {
+        await this.criteriaService.save({
+          ...criteria,
+          result: { auctionId },
+        });
+      }
+    }
+    return;
   }
 
   async checkAuction(url: string, criteria: number[]): Promise<AnalyticsRdo> {
     const auctionId = this.parseAuctionId(url);
-
     const auctionResponse: AxiosResponse<AuctionDataRdo> =
       await this.mosRuApiService
         .getHttpClient()
@@ -50,7 +78,6 @@ export class AuctionsService {
     const [IsTaskFile, IsContractProjectFile] = this.checkFiles(
       auctionResponse.data.files,
     );
-
     if (!IsTaskFile || !IsContractProjectFile) {
       const reason = [];
 
@@ -64,7 +91,6 @@ export class AuctionsService {
     const files = await this.filesService.getFilesPayload(
       auctionResponse.data.files,
     );
-
     const taskFile = files.find((file) =>
       file.filename.toLowerCase().includes('тз'),
     );
@@ -72,20 +98,13 @@ export class AuctionsService {
       file.filename.toLowerCase().includes('проект контракта'),
     );
 
-    //TODO
-    const MLDto = this.formJsonForML(auctionResponse.data);
-
-    const answer = await this.MLServiceInstance.post('/save', {
-      'Наименование в КС': auctionResponse.data.name,
-      ТЗ: taskFile.text,
-      ПК: contractProjectFile.text,
-    });
+    // await this.mlApiService.checkSixPoint(auctionResponse.data, taskFile);
 
     return { url, isPublished: true };
   }
 
   private parseAuctionId(url: string) {
-    return url.slice(url.lastIndexOf('/') + 1);
+    return Number(url.slice(url.lastIndexOf('/') + 1));
   }
 
   private checkFiles(

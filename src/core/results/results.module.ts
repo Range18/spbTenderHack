@@ -2,13 +2,18 @@ import { Module } from '@nestjs/common';
 import { TypeOrmModule } from '@nestjs/typeorm';
 import { ResultEntity } from '#src/core/results/entitites/result.entity';
 import { ResultsService } from '#src/core/results/results.service';
-import { ResultsController } from '#src/core/results/results.controller';
+import { GroupsController } from '#src/core/results/groups.controller';
 import { GroupsService } from '#src/core/results/groups.service';
+import { GroupEntity } from '#src/core/results/entitites/group.entity';
+import { CriteriaEntity } from '#src/core/results/entitites/criteria.entity';
+import { CriteriaService } from '#src/core/results/criteria.service';
 
 @Module({
-  imports: [TypeOrmModule.forFeature([ResultEntity])],
-  providers: [ResultsService, GroupsService],
-  controllers: [ResultsController],
-  exports: [ResultsService],
+  imports: [
+    TypeOrmModule.forFeature([ResultEntity, GroupEntity, CriteriaEntity]),
+  ],
+  providers: [ResultsService, GroupsService, CriteriaService],
+  controllers: [GroupsController],
+  exports: [ResultsService, GroupsService, CriteriaService],
 })
 export class ResultsModule {}

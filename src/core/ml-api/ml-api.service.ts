@@ -1,0 +1,81 @@
+import axios, { AxiosInstance } from 'axios';
+import { mainConfig } from '#src/common/configs/main.config';
+import { AuctionDataRdo } from '#src/core/auctions/rdo/auction-data.rdo';
+import { FileForMlType } from '#src/core/files/types/file-for-ml.type';
+import { CostType } from '#src/core/auctions/types/cost-type.enum';
+import console from 'node:console';
+import { Injectable } from '@nestjs/common';
+
+@Injectable()
+export class MlApiService {
+  private readonly MLServiceInstance: AxiosInstance;
+
+  constructor() {
+    this.MLServiceInstance = axios.create({
+      baseURL: mainConfig.mlUrl,
+    });
+  }
+
+  async checkFirstPoint(
+    data: AuctionDataRdo,
+    taskFile: FileForMlType,
+    contractProjectFile: FileForMlType,
+  ) {
+    const answer = await this.MLServiceInstance.post('/save', {
+      'Название в КС': data.name,
+      ТЗ: taskFile.text,
+      ПК: contractProjectFile.text,
+    });
+    return answer.data;
+  }
+
+  async checkSecondPoint(
+    data: AuctionDataRdo,
+    taskFile: FileForMlType,
+    contractProjectFile: FileForMlType,
+  ) {
+    return data.isContractGuaranteeRequired;
+  }
+
+  async checkFourthPoint(
+    data: AuctionDataRdo,
+    taskFile: FileForMlType,
+    contractProjectFile: FileForMlType,
+  ) {
+    const answer = await this.MLServiceInstance.post('/save', {
+      'График поставки': `${data.deliveries[0].periodDaysFrom}-${data.deliveries[0].periodDaysTo}`,
+      ТЗ: taskFile.text,
+      ПК: contractProjectFile.text,
+    });
+    return answer.data;
+  }
+
+  async checkFifthPoint(
+    data: AuctionDataRdo,
+    contractProjectFile: FileForMlType,
+  ) {
+    const answer = await this.MLServiceInstance.post('/save', {
+      type: data.contractCost ? CostType.contractCost : CostType.startCost,
+      ПК: contractProjectFile.text,
+    });
+    return answer.data;
+  }
+
+  async checkSixPoint(data: AuctionDataRdo, taskFile: FileForMlType) {
+    const answer = await this.MLServiceInstance.post('/save', {
+      specifications: data.deliveries[0].items.map((item) => {
+        return {
+          name: item.name,
+          cost: item.costPerUnit,
+          amount: item.quantity,
+        };
+      }),
+      ТЗ: taskFile.text,
+    });
+    return answer.data;
+  }
+
+  getHttpClient() {
+    return this.MLServiceInstance;
+  }
+}

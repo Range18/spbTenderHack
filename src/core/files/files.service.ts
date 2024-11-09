@@ -6,6 +6,7 @@ import { AuctionFileRdo } from '#src/core/auctions/rdo/auction-file.rdo';
 import { mainConfig } from '#src/common/configs/main.config';
 import * as path from 'node:path';
 import { getPDFJS } from '#src/common/utils/pdfjs-import';
+import * as console from 'node:console';
 
 @Injectable()
 export class FilesService {
@@ -35,7 +36,7 @@ export class FilesService {
         };
 
       default:
-        throw new Error('Unsupported file type');
+        console.log('fuuu');
     }
   }
 
