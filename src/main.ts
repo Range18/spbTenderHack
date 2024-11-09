@@ -9,7 +9,7 @@ async function bootstrap() {
 
   const config = new DocumentBuilder().setTitle('Tender Hack SPB').build();
   const document = SwaggerModule.createDocument(app, config);
-  SwaggerModule.setup('/docs', app, document);
+  SwaggerModule.setup('docs', app, document);
 
   await app.listen(mainConfig.port);
 }
