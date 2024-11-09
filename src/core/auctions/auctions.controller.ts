@@ -8,8 +8,8 @@ import { AuctionsService } from '#src/core/auctions/auctions.service';
 export class AuctionsController {
   constructor(private readonly auctionsService: AuctionsService) {}
 
-  @Post()
-  async checkIsRight(@Body() isRightDto: CheckAuctionsDto) {
-    return await this.auctionsService.checkAuctions(isRightDto);
+  @Post('/check')
+  async checkAuctions(@Body() checkAuctionsDto: CheckAuctionsDto) {
+    return await this.auctionsService.checkAuctions(checkAuctionsDto);
   }
 }
