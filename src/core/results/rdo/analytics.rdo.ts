@@ -1,4 +1,4 @@
-import { TableRdo } from '#src/core/auctions/rdo/tableRdo';
+import { TableRdo } from '#src/core/results/rdo/table.rdo';
 
 export class AnalyticsRdo {
   url: string;

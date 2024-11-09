@@ -6,7 +6,7 @@ import { mainConfig } from '#src/common/configs/main.config';
 import { MosRuApiService } from '#src/core/mos-ru-api/mos-ru-api.service';
 import { FilesService } from '#src/core/files/files.service';
 import { ReasonsToClose } from '#src/core/auctions/types/reasons-to-close.enum';
-import { AnalyticsRdo } from '#src/core/auctions/rdo/analytics.rdo';
+import { AnalyticsRdo } from '#src/core/results/rdo/analytics.rdo';
 import { CheckAuctionsDto } from '#src/core/auctions/dto/check-auctions.dto';
 
 @Injectable()
