@@ -1,23 +1,21 @@
 import axios, { AxiosInstance, AxiosResponse } from 'axios';
-import { HttpStatus, NotFoundException } from '@nestjs/common';
+import { HttpStatus, Injectable, NotFoundException } from '@nestjs/common';
 import { AuctionDataRdo } from '#src/core/auctions/rdo/auction-data.rdo';
 import { SendToMlDto } from '#src/core/auctions/dto/send-to-ml.dto';
 import { mainConfig } from '#src/common/configs/main.config';
+import { MosRuApiService } from '#src/core/mos-ru-api/mos-ru-api.service';
+import { FilesService } from '#src/core/files/files.service';
 
+@Injectable()
 export class AuctionsService {
-  private readonly mosRuServiceInstance: AxiosInstance;
   private readonly MLServiceInstance: AxiosInstance;
 
-  constructor() {
-    this.mosRuServiceInstance = axios.create({
-      baseURL: 'https://zakupki.mos.ru',
-      headers: {
-        'user-agent':
-          'Mozilla/5.0 (Windows NT 10.0; Win64; x64) AppleWebKit/537.36 (KHTML, like Gecko) Chrome/130.0.0.0 Safari/537.36',
-      },
-    });
+  constructor(
+    private readonly mosRuApiService: MosRuApiService,
+    private readonly filesService: FilesService,
+  ) {
     this.MLServiceInstance = axios.create({
-      baseURL: mainConfig.ml_url,
+      baseURL: mainConfig.mlUrl,
     });
   }
 
@@ -25,9 +23,9 @@ export class AuctionsService {
     const auctionId = this.parseAuctionId(url);
 
     const auctionResponse: AxiosResponse<AuctionDataRdo> =
-      await this.mosRuServiceInstance.get(
-        '/newapi/api/Auction/Get?auctionId=' + auctionId,
-      );
+      await this.mosRuApiService
+        .getHttpClient()
+        .get('/Auction/Get?auctionId=' + auctionId);
 
     if (
       !auctionResponse.data ||
@@ -36,12 +34,16 @@ export class AuctionsService {
       throw new NotFoundException();
     }
 
+    const files = await this.filesService.getFilesPayload(
+      auctionResponse.data.files,
+    );
+
     const MLDto = this.formJsonForML(auctionResponse.data);
 
     //TODO POST TO ML
-    const answer = await this.MLServiceInstance.post('/todo', MLDto);
+    // const answer = await this.MLServiceInstance.post('/todo', MLDto);
 
-    return answer;
+    return files;
   }
 
   private parseAuctionId(url: string) {
