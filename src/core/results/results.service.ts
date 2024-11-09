@@ -4,6 +4,7 @@ import { ResultEntity } from '#src/core/results/entitites/result.entity';
 import {
   DeepPartial,
   FindManyOptions,
+  FindOneOptions,
   FindOptionsWhere,
   Repository,
 } from 'typeorm';
@@ -19,6 +20,10 @@ export class ResultsService {
     options: FindManyOptions<ResultEntity>,
   ): Promise<ResultEntity[]> {
     return await this.resultsRepository.find(options);
+  }
+
+  async findOne(options: FindOneOptions<ResultEntity>): Promise<ResultEntity> {
+    return await this.resultsRepository.findOne(options);
   }
 
   async save(entity: DeepPartial<ResultEntity>) {

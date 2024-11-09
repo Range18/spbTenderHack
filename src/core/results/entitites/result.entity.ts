@@ -1,9 +1,7 @@
 import {
   Column,
   Entity,
-  JoinColumn,
   ManyToMany,
-  ManyToOne,
   OneToMany,
   PrimaryGeneratedColumn,
 } from 'typeorm';
@@ -15,7 +13,7 @@ export class ResultEntity {
   @PrimaryGeneratedColumn()
   id: number;
 
-  @Column()
+  @Column({ unique: true })
   auctionId: number;
 
   @Column({ nullable: true })

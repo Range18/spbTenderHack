@@ -7,13 +7,19 @@ import { GroupsService } from '#src/core/results/groups.service';
 import { GroupEntity } from '#src/core/results/entitites/group.entity';
 import { CriteriaEntity } from '#src/core/results/entitites/criteria.entity';
 import { CriteriaService } from '#src/core/results/criteria.service';
+import { ResultCacheService } from '#src/core/results/result-cache.service';
 
 @Module({
   imports: [
     TypeOrmModule.forFeature([ResultEntity, GroupEntity, CriteriaEntity]),
   ],
-  providers: [ResultsService, GroupsService, CriteriaService],
+  providers: [
+    ResultsService,
+    GroupsService,
+    CriteriaService,
+    ResultCacheService,
+  ],
   controllers: [GroupsController],
-  exports: [ResultsService, GroupsService, CriteriaService],
+  exports: [ResultsService, GroupsService, CriteriaService, ResultCacheService],
 })
 export class ResultsModule {}

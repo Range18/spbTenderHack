@@ -11,6 +11,7 @@ import { GroupsService } from '#src/core/results/groups.service';
 import { ResultsService } from '#src/core/results/results.service';
 import { MlApiService } from '#src/core/ml-api/ml-api.service';
 import { CriteriaService } from '#src/core/results/criteria.service';
+import { ResultCacheService } from '#src/core/results/result-cache.service';
 
 @Injectable()
 export class AuctionsService {
@@ -20,22 +21,18 @@ export class AuctionsService {
     private readonly groupService: GroupsService,
     private readonly resultsService: ResultsService,
     private readonly criteriaService: CriteriaService,
+    private readonly resultCacheService: ResultCacheService,
     private readonly mlApiService: MlApiService,
   ) {}
 
   async checkAuctions(checkAuctionsDto: CheckAuctionsDto) {
-    const group = await this.groupService.save({});
     const auctionIds = checkAuctionsDto.urls.map((url) =>
       this.parseAuctionId(url),
     );
+    const group = await this.groupService.save({});
 
-    for (const auctionId of auctionIds) {
-      const resultEntity = await this.resultsService.save({
-        auctionId: auctionId,
-      });
-      group.results.push(resultEntity);
-    }
-    await this.groupService.save(group);
+    const resultCachedEntities =
+      await this.resultCacheService.createNewAndGetCached(group, auctionIds);
 
     const criteria = checkAuctionsDto.criteria.sort();
     for (const url of checkAuctionsDto.urls) {

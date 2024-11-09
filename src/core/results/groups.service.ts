@@ -5,7 +5,6 @@ import {
   FindManyOptions,
   FindOneOptions,
   Repository,
-  SaveOptions,
 } from 'typeorm';
 import { GroupEntity } from '#src/core/results/entitites/group.entity';
 
