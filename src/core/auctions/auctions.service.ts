@@ -170,11 +170,18 @@ export class AuctionsService {
         }
 
         case 2: {
-          const t = await this.mlApiService.checkSecondPoint(
+          const second = await this.mlApiService.checkSecondPoint(
             auctionData,
             taskFile,
             contractProjectFile,
           );
+
+          criteriaResults.push({
+            name: '2 критерий',
+            type: 2,
+            isOk: second,
+          });
+
           break;
         }
 
