@@ -7,6 +7,7 @@ import { MosRuApiService } from '#src/core/mos-ru-api/mos-ru-api.service';
 import { FilesService } from '#src/core/files/files.service';
 import { ReasonsToClose } from '#src/core/auctions/types/reasons-to-close.enum';
 import { AnalyticsRdo } from '#src/core/auctions/rdo/analytics.rdo';
+import { CheckAuctionsDto } from '#src/core/auctions/dto/check-auctions.dto';
 
 @Injectable()
 export class AuctionsService {
@@ -21,7 +22,17 @@ export class AuctionsService {
     });
   }
 
-  async checkIsRight(url: string): Promise<AnalyticsRdo> {
+  async checkAuctions(
+    checkAuctionsDto: CheckAuctionsDto,
+  ): Promise<AnalyticsRdo[]> {
+    const results = [];
+    for (const url of checkAuctionsDto.urls) {
+      results.push(await this.checkAuction(url, checkAuctionsDto.criteria));
+    }
+    return results;
+  }
+
+  async checkAuction(url: string, criteria: number[]): Promise<AnalyticsRdo> {
     const auctionId = this.parseAuctionId(url);
 
     const auctionResponse: AxiosResponse<AuctionDataRdo> =
@@ -63,14 +74,13 @@ export class AuctionsService {
 
     const MLDto = this.formJsonForML(auctionResponse.data);
 
-    //TODO POST TO ML
-    const answer = await this.MLServiceInstance.post('/crit_1', {
+    const answer = await this.MLServiceInstance.post('/save', {
       'Наименование в КС': auctionResponse.data.name,
       ТЗ: taskFile.text,
       ПК: contractProjectFile.text,
     });
 
-    return answer.data;
+    return { url, isPublished: true };
   }
 
   private parseAuctionId(url: string) {

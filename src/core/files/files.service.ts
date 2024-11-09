@@ -59,7 +59,7 @@ export class FilesService {
     for (let i = 1; i <= pdf.numPages; i++) {
       const page = await pdf.getPage(i);
       const text = await page.getTextContent();
-      promises.push(text.items.map((s) => s['str']).join('  '));
+      promises.push(text.items.map((s) => s['str']).join('\n'));
     }
 
     return Promise.all(promises).then(function (texts) {
