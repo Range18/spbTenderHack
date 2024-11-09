@@ -12,6 +12,7 @@ import { ResultsService } from '#src/core/results/results.service';
 import { MlApiService } from '#src/core/ml-api/ml-api.service';
 import { CriteriaService } from '#src/core/results/criteria.service';
 import { ResultCacheService } from '#src/core/results/result-cache.service';
+import { difference } from '#src/common/utils/sets-diff.func';
 
 @Injectable()
 export class AuctionsService {
@@ -34,10 +35,24 @@ export class AuctionsService {
     const resultCachedEntities =
       await this.resultCacheService.createNewAndGetCached(group, auctionIds);
 
-    const criteria = checkAuctionsDto.criteria.sort();
+    const criteriaSet = new Set(checkAuctionsDto.criteria);
     for (const url of checkAuctionsDto.urls) {
-      const result = await this.checkAuction(url, criteria);
       const auctionId = this.parseAuctionId(url);
+      const calculatedCriteria = resultCachedEntities[auctionId]
+        ? new Set(
+            resultCachedEntities[auctionId].criteria.map(
+              (criteria) => criteria.type,
+            ),
+          )
+        : null;
+      const criteriaToCalculate = calculatedCriteria
+        ? difference(criteriaSet, calculatedCriteria).values()
+        : criteriaSet.values();
+
+      const result = await this.checkAuction(
+        url,
+        Array.from(criteriaToCalculate).sort(),
+      );
       const resultEntity = await this.resultsService.updateOne(
         { auctionId },
         {
@@ -48,14 +63,15 @@ export class AuctionsService {
         },
       );
 
-      for (const criteria of resultEntity.criteria) {
+      for (const criteria of result.table) {
         await this.criteriaService.save({
           ...criteria,
           result: { auctionId },
         });
       }
     }
-    return;
+
+    return group.id;
   }
 
   async checkAuction(url: string, criteria: number[]): Promise<AnalyticsRdo> {
@@ -65,23 +81,17 @@ export class AuctionsService {
         .getHttpClient()
         .get('/Auction/Get?auctionId=' + auctionId);
 
-    if (
-      !auctionResponse.data ||
-      auctionResponse.status == HttpStatus.NOT_FOUND
-    ) {
+    if (!auctionResponse.data || auctionResponse.status == HttpStatus.NOT_FOUND)
       throw new NotFoundException();
-    }
 
     const [IsTaskFile, IsContractProjectFile] = this.checkFiles(
       auctionResponse.data.files,
     );
     if (!IsTaskFile || !IsContractProjectFile) {
       const reason = [];
-
       if (!IsTaskFile) reason.push(ReasonsToClose.NoTaskFIle);
       if (!IsContractProjectFile)
         reason.push(ReasonsToClose.NoContractProjectFile);
-
       return { url: url, isPublished: false, reason: reason.join(' ') };
     }
 
@@ -119,6 +129,29 @@ export class AuctionsService {
     );
 
     return [IsTaskFile, IsContractProjectFile];
+  }
+
+  async getDocs(url: string) {
+    const auctionId = this.parseAuctionId(url);
+    const auctionResponse: AxiosResponse<AuctionDataRdo> =
+      await this.mosRuApiService
+        .getHttpClient()
+        .get('/Auction/Get?auctionId=' + auctionId);
+
+    if (!auctionResponse.data || auctionResponse.status == HttpStatus.NOT_FOUND)
+      throw new NotFoundException();
+
+    const files = await this.filesService.getFilesPayload(
+      auctionResponse.data.files,
+    );
+    const taskFile = files.find((file) =>
+      file.filename.toLowerCase().includes('тз'),
+    );
+    const contractProjectFile = files.find((file) =>
+      file.filename.toLowerCase().includes('проект контракта'),
+    );
+
+    return { ТЗ: taskFile, ПК: contractProjectFile };
   }
 
   private formJsonForML(data: AuctionDataRdo) {

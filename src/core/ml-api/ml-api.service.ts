@@ -3,7 +3,6 @@ import { mainConfig } from '#src/common/configs/main.config';
 import { AuctionDataRdo } from '#src/core/auctions/rdo/auction-data.rdo';
 import { FileForMlType } from '#src/core/files/types/file-for-ml.type';
 import { CostType } from '#src/core/auctions/types/cost-type.enum';
-import console from 'node:console';
 import { Injectable } from '@nestjs/common';
 
 @Injectable()
@@ -35,6 +34,17 @@ export class MlApiService {
     contractProjectFile: FileForMlType,
   ) {
     return data.isContractGuaranteeRequired;
+  }
+
+  async checkThirdPoint(
+    taskFile: FileForMlType,
+    contractProjectFile: FileForMlType,
+  ) {
+    const answer = await this.MLServiceInstance.post('/save', {
+      ТЗ: taskFile.text,
+      ПК: contractProjectFile.text,
+    });
+    return answer.data;
   }
 
   async checkFourthPoint(

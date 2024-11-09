@@ -2,8 +2,6 @@ import {
   Column,
   Entity,
   JoinColumn,
-  JoinTable,
-  ManyToMany,
   ManyToOne,
   PrimaryGeneratedColumn,
 } from 'typeorm';
@@ -20,6 +18,9 @@ export class CriteriaEntity {
 
   @Column()
   name: string;
+
+  @Column()
+  type: number;
 
   @Column()
   isOk: boolean;

@@ -1,12 +1,11 @@
 import { FileForMlType } from '#src/core/files/types/file-for-ml.type';
-import { Injectable } from '@nestjs/common';
+import { Injectable, Logger } from '@nestjs/common';
 import { MosRuApiService } from '#src/core/mos-ru-api/mos-ru-api.service';
 import mammoth from 'mammoth';
 import { AuctionFileRdo } from '#src/core/auctions/rdo/auction-file.rdo';
 import { mainConfig } from '#src/common/configs/main.config';
 import * as path from 'node:path';
 import { getPDFJS } from '#src/common/utils/pdfjs-import';
-import * as console from 'node:console';
 
 @Injectable()
 export class FilesService {
@@ -19,7 +18,6 @@ export class FilesService {
   }
 
   async getFilePayload(file: AuctionFileRdo): Promise<FileForMlType> {
-    console.log(path.extname(file.name));
     switch (path.extname(file.name)) {
       case '.docx':
         return {
@@ -36,7 +34,8 @@ export class FilesService {
         };
 
       default:
-        console.log('fuuu');
+        Logger.warn(`${path.extname(file.name)} not supported`);
+        return;
     }
   }
 

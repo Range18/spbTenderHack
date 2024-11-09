@@ -2,6 +2,7 @@ import { Injectable } from '@nestjs/common';
 import { ResultsService } from '#src/core/results/results.service';
 import { GroupsService } from '#src/core/results/groups.service';
 import { GroupEntity } from '#src/core/results/entitites/group.entity';
+import { ResultEntity } from '#src/core/results/entitites/result.entity';
 
 @Injectable()
 export class ResultCacheService {
@@ -11,7 +12,7 @@ export class ResultCacheService {
   ) {}
 
   async createNewAndGetCached(group: GroupEntity, auctionIds: number[]) {
-    const resultCachedEntities = {};
+    const resultCachedEntities: { [key in number]: ResultEntity } = {};
     for (const auctionId of auctionIds) {
       const resultCachedEntity = await this.resultsService.findOne({
         where: { auctionId },
