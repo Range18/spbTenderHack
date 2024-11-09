@@ -13,6 +13,7 @@ export class ResultCacheService {
 
   async createNewAndGetCached(group: GroupEntity, auctionIds: number[]) {
     const resultCachedEntities: { [key in number]: ResultEntity } = {};
+    group.results = group.results ? group.results : [];
     for (const auctionId of auctionIds) {
       const resultCachedEntity = await this.resultsService.findOne({
         where: { auctionId },

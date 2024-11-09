@@ -5,9 +5,9 @@ export class TableRdo {
 
   isOk: boolean;
 
-  cardValue: string;
+  cardValue?: string;
 
-  TaskFileValue: string;
+  taskFileValue?: string;
 
-  ContractProjectFileValue: string;
+  contractProjectFileValue?: string;
 }

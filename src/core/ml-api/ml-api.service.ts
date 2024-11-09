@@ -4,6 +4,7 @@ import { AuctionDataRdo } from '#src/core/auctions/rdo/auction-data.rdo';
 import { FileForMlType } from '#src/core/files/types/file-for-ml.type';
 import { CostType } from '#src/core/auctions/types/cost-type.enum';
 import { Injectable } from '@nestjs/common';
+import { MlRdo } from '#src/core/ml-api/rdo/ml.rdo';
 
 @Injectable()
 export class MlApiService {
@@ -20,11 +21,13 @@ export class MlApiService {
     taskFile: FileForMlType,
     contractProjectFile: FileForMlType,
   ) {
-    const answer = await this.MLServiceInstance.post('/save', {
-      'Название в КС': data.name,
+    const answer = await this.MLServiceInstance.post<MlRdo>('/crit_1', {
+      'Наименование в КС': data.name,
       ТЗ: taskFile.text,
       ПК: contractProjectFile.text,
     });
+
+    console.log(answer);
     return answer.data;
   }
 
@@ -40,7 +43,7 @@ export class MlApiService {
     taskFile: FileForMlType,
     contractProjectFile: FileForMlType,
   ) {
-    const answer = await this.MLServiceInstance.post('/save', {
+    const answer = await this.MLServiceInstance.post<MlRdo>('/save', {
       ТЗ: taskFile.text,
       ПК: contractProjectFile.text,
     });
@@ -52,7 +55,7 @@ export class MlApiService {
     taskFile: FileForMlType,
     contractProjectFile: FileForMlType,
   ) {
-    const answer = await this.MLServiceInstance.post('/save', {
+    const answer = await this.MLServiceInstance.post<MlRdo>('/save', {
       'График поставки': `${data.deliveries[0].periodDaysFrom}-${data.deliveries[0].periodDaysTo}`,
       ТЗ: taskFile.text,
       ПК: contractProjectFile.text,
@@ -64,7 +67,7 @@ export class MlApiService {
     data: AuctionDataRdo,
     contractProjectFile: FileForMlType,
   ) {
-    const answer = await this.MLServiceInstance.post('/save', {
+    const answer = await this.MLServiceInstance.post<MlRdo>('/save', {
       type: data.contractCost ? CostType.contractCost : CostType.startCost,
       ПК: contractProjectFile.text,
     });
@@ -72,7 +75,7 @@ export class MlApiService {
   }
 
   async checkSixPoint(data: AuctionDataRdo, taskFile: FileForMlType) {
-    const answer = await this.MLServiceInstance.post('/save', {
+    const answer = await this.MLServiceInstance.post<MlRdo>('/save', {
       specifications: data.deliveries[0].items.map((item) => {
         return {
           name: item.name,

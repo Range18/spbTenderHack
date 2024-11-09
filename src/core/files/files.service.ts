@@ -26,6 +26,13 @@ export class FilesService {
           text: await this.parseDocx(file),
         };
 
+      case '.doc':
+        return {
+          id: file.id,
+          filename: file.name,
+          text: await this.parseDocx(file),
+        };
+
       case '.pdf':
         return {
           id: file.id,
