@@ -72,6 +72,7 @@ export class AuctionsService {
       file.filename.toLowerCase().includes('проект контракта'),
     );
 
+    //TODO
     const MLDto = this.formJsonForML(auctionResponse.data);
 
     const answer = await this.MLServiceInstance.post('/save', {
