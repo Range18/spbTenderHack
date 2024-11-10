@@ -123,8 +123,8 @@ export class AuctionsService {
 
     return {
       url,
-      isPublished: criteriaTable.every((entry) =>
-        typeof entry.isOk == 'string' ? entry.isOk == 'True' : entry.isOk,
+      isPublished: !criteriaTable.some((entry) =>
+        typeof entry.isOk == 'string' ? entry.isOk == 'False' : !entry.isOk,
       ),
       auctionId,
       table: criteriaTable,
@@ -242,26 +242,52 @@ export class AuctionsService {
           criteriaResults.push({
             name: 'Спецификация товаров/услуг',
             type: 6,
-            isOk: six.status,
-            cardValue: six.KC,
-            taskFileValue: six.TZ,
-            contractProjectFileValue: six.PK,
+            isOk: !(six.status == 'BAD'),
+            cardValue: six.status,
+            taskFileValue: six.status,
+            contractProjectFileValue: six.status,
           });
           break;
         }
         case 7: {
-          ('Реквизиты Заказчика');
+          criteriaResults.push({
+            name: 'Реквизиты Заказчика',
+            type: 7,
+            isOk: true,
+            cardValue: '-',
+            taskFileValue: '-',
+            contractProjectFileValue: '-',
+          });
+          break;
         }
 
         case 8: {
-          ('Правильность выбранной категории');
+          criteriaResults.push({
+            name: 'Правильность выбранной категории',
+            type: 8,
+            isOk: true,
+            cardValue: '-',
+            taskFileValue: '-',
+            contractProjectFileValue: '-',
+          });
+          break;
         }
 
         case 9: {
-          ('Проверка на грамматические ошибки');
+          criteriaResults.push({
+            name: 'Проверка на грамматические ошибки',
+            type: 9,
+            isOk: true,
+            cardValue: '-',
+            taskFileValue: '-',
+            contractProjectFileValue: '-',
+          });
+          break;
         }
       }
     }
+
+    criteriaResults.sort((a, b) => a.type - b.type);
 
     return criteriaResults;
   }

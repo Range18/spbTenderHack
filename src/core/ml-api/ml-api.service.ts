@@ -6,6 +6,7 @@ import { CostType } from '#src/core/auctions/types/cost-type.enum';
 import { Injectable } from '@nestjs/common';
 import { MlRdo } from '#src/core/ml-api/rdo/ml.rdo';
 import { FourthRdo } from '#src/core/ml-api/rdo/fourth.rdo';
+import { SixRdo } from '#src/core/ml-api/rdo/six.rdo';
 
 @Injectable()
 export class MlApiService {
@@ -80,7 +81,7 @@ export class MlApiService {
   }
 
   async checkSixPoint(data: AuctionDataRdo, taskFile: FileForMlType) {
-    const answer = await this.MLServiceInstance.post<MlRdo>('/crit_6', {
+    const answer = await this.MLServiceInstance.post<SixRdo>('/crit_6', {
       specifications: data.deliveries[0].items.map((item) => {
         return {
           name: item.name,
