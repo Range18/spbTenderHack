@@ -7,6 +7,8 @@ import { Injectable } from '@nestjs/common';
 import { MlRdo } from '#src/core/ml-api/rdo/ml.rdo';
 import { FourthRdo } from '#src/core/ml-api/rdo/fourth.rdo';
 import { SixRdo } from '#src/core/ml-api/rdo/six.rdo';
+import { SecondRdo } from '#src/core/ml-api/rdo/second.rdo';
+import { FifthRdo } from '#src/core/ml-api/rdo/fifth.rdo';
 
 @Injectable()
 export class MlApiService {
@@ -34,10 +36,11 @@ export class MlApiService {
   async checkSecondPoint(
     data: AuctionDataRdo,
     contractProjectFile: FileForMlType,
-  ): Promise<MlRdo> {
-    if (!data.isContractGuaranteeRequired) return { status: true };
+  ): Promise<SecondRdo> {
+    if (!data.isContractGuaranteeRequired)
+      return { status: true, text: 'Не требуется' };
 
-    const answer = await this.MLServiceInstance.post<MlRdo>('/crit_2', {
+    const answer = await this.MLServiceInstance.post<SecondRdo>('/crit_2', {
       Цена: data.contractGuaranteeAmount,
       ПК: contractProjectFile.text,
     });
@@ -45,23 +48,24 @@ export class MlApiService {
   }
 
   async checkThirdPoint(
+    data: AuctionDataRdo,
     taskFile: FileForMlType,
     contractProjectFile: FileForMlType,
-  ) {
-    const answer = await this.MLServiceInstance.post<MlRdo>('/crit_3', {
-      ТЗ: taskFile.text,
-      ПК: contractProjectFile.text,
-    });
-    return answer.data;
+  ): Promise<MlRdo> {
+    // const answer = await this.MLServiceInstance.post<MlRdo>('/crit_3', {
+    //   ТЗ: taskFile.text,
+    //   ПК: contractProjectFile.text,
+    // });
+    return { status: !data.isLicenseProduction };
   }
 
   async checkFourthPoint(
-    data: AuctionDataRdo,
+    period: string,
     taskFile: FileForMlType,
     contractProjectFile: FileForMlType,
   ) {
     const answer = await this.MLServiceInstance.post<FourthRdo>('/crit_4', {
-      'График поставки': `${data.deliveries[0].periodDaysFrom}-${data.deliveries[0].periodDaysTo}`,
+      'График поставки': period,
       ТЗ: taskFile.text,
       ПК: contractProjectFile.text,
     });
@@ -73,7 +77,7 @@ export class MlApiService {
     data: AuctionDataRdo,
     contractProjectFile: FileForMlType,
   ) {
-    const answer = await this.MLServiceInstance.post<MlRdo>('/crit_5', {
+    const answer = await this.MLServiceInstance.post<FifthRdo>('/crit_5', {
       type: data.contractCost ? CostType.contractCost : CostType.startCost,
       ПК: contractProjectFile.text,
     });

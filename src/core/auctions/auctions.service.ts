@@ -15,6 +15,7 @@ import { FileForMlType } from '#src/core/files/types/file-for-ml.type';
 import { TableRdo } from '#src/core/results/rdo/table.rdo';
 import * as console from 'node:console';
 import { IsIncludes } from '#src/common/utils/is-includes.func';
+import { StatusSix } from '#src/core/ml-api/types/status-six.enum';
 
 @Injectable()
 export class AuctionsService {
@@ -183,6 +184,9 @@ export class AuctionsService {
             name: 'Обеспечение исполнения контракта',
             type: 2,
             isOk: second.status,
+            cardValue: second.text,
+            taskFileValue: second.text,
+            contractProjectFileValue: second.text,
           });
 
           break;
@@ -190,6 +194,7 @@ export class AuctionsService {
 
         case 3: {
           const third = await this.mlApiService.checkThirdPoint(
+            auctionData,
             taskFile,
             contractProjectFile,
           );
@@ -205,15 +210,24 @@ export class AuctionsService {
         }
 
         case 4: {
+          const period =
+            auctionData.deliveries[0].periodDaysFrom &&
+            auctionData.deliveries[0].periodDaysTo
+              ? `${auctionData.deliveries[0].periodDaysFrom}-${auctionData.deliveries[0].periodDaysTo} дней`
+              : `${auctionData.deliveries[0].periodDateFrom}-${auctionData.deliveries[0].periodDateTo}`;
           const fourth = await this.mlApiService.checkFourthPoint(
-            auctionData,
+            period,
             taskFile,
             contractProjectFile,
           );
+
           criteriaResults.push({
             name: 'График и этапы поставки',
             type: 4,
             isOk: fourth.TZ && fourth.PK,
+            cardValue: period,
+            taskFileValue: fourth.TZ_text,
+            contractProjectFileValue: fourth.PK_text,
           });
           break;
         }
@@ -227,9 +241,11 @@ export class AuctionsService {
             name: 'Тип ценовой информации',
             type: 5,
             isOk: fifth.status,
-            cardValue: fifth.KC,
-            taskFileValue: fifth.TZ,
-            contractProjectFileValue: fifth.PK,
+            cardValue: auctionData.contractCost
+              ? 'Максимальная цена'
+              : 'Начальная цена',
+            taskFileValue: '-',
+            contractProjectFileValue: fifth.text,
           });
           break;
         }
@@ -243,9 +259,9 @@ export class AuctionsService {
             name: 'Спецификация товаров/услуг',
             type: 6,
             isOk: !(six.status == 'BAD'),
-            cardValue: six.status,
-            taskFileValue: six.status,
-            contractProjectFileValue: six.status,
+            cardValue: StatusSix[six.status],
+            taskFileValue: StatusSix[six.status],
+            contractProjectFileValue: StatusSix[six.status],
           });
           break;
         }
