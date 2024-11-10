@@ -26,8 +26,6 @@ export class MlApiService {
       ТЗ: taskFile.text,
       ПК: contractProjectFile.text,
     });
-
-    console.log(answer);
     return answer.data;
   }
 

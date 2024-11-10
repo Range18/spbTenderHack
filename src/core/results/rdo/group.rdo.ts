@@ -16,8 +16,9 @@ export class GroupRdo {
     this.results = group.results.map((result) => {
       return {
         url: `${mainConfig.apiBaseUrl}/Auction/Get?auctionId=${result.auctionId}`,
+        auctionId: result.auctionId,
         isPublished: result.isPublished,
-        reason: result.reason,
+        reason: result.reason.split(';'),
         table: result.criteria,
       } as AnalyticsRdo;
     });

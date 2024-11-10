@@ -66,7 +66,7 @@ export class AuctionsService {
         { auctionId },
         {
           isPublished: result.isPublished,
-          reason: result.reason,
+          reason: result.reason ? result.reason.join(';') : undefined,
           isCompleted: true,
         },
       );
@@ -100,7 +100,7 @@ export class AuctionsService {
       if (!IsTaskFile) reason.push(ReasonsToClose.NoTaskFIle);
       if (!IsContractProjectFile)
         reason.push(ReasonsToClose.NoContractProjectFile);
-      return { url: url, isPublished: false, reason: reason.join(' ') };
+      return { url: url, isPublished: false, auctionId, reason: reason };
     }
 
     const files = await this.filesService.getFilesPayload(
@@ -113,16 +113,22 @@ export class AuctionsService {
       IsIncludes(file.filename, ['пк', 'проект', 'контракт']),
     );
 
-    const t = await this.CalculateCriteria(
+    if (taskFile.text.length < 100 || contractProjectFile.text.length < 100) {
+      const reason = [];
+      if (taskFile.text.length < 100) reason.push('Пустое ТЗ');
+      if (contractProjectFile.text.length < 100)
+        reason.push('Пустой проект контракта');
+      return { url: url, isPublished: false, auctionId, reason: reason };
+    }
+
+    const table = await this.CalculateCriteria(
       auctionResponse.data,
       taskFile,
       contractProjectFile,
       criteria,
     );
 
-    console.log(t);
-
-    return { url, isPublished: true, table: t };
+    return { url, isPublished: true, auctionId, table: table };
   }
 
   private checkFiles(
