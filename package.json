@@ -25,6 +25,7 @@
     "@nestjs/platform-express": "^9.0.0",
     "@nestjs/swagger": "^8.0.5",
     "@nestjs/typeorm": "^10.0.2",
+    "@types/word-extractor": "^1.0.6",
     "axios": "^1.7.7",
     "docxtemplater": "^3.52.0",
     "dotenv": "^16.4.5",
@@ -34,7 +35,9 @@
     "pdfjs-dist": "^4.8.69",
     "reflect-metadata": "^0.1.13",
     "rxjs": "^7.2.0",
-    "typeorm": "^0.3.20"
+    "textract": "^2.5.0",
+    "typeorm": "^0.3.20",
+    "word-extractor": "^1.0.4"
   },
   "devDependencies": {
     "@nestjs/cli": "^9.0.0",
@@ -44,6 +47,7 @@
     "@types/jest": "29.5.0",
     "@types/node": "18.15.11",
     "@types/supertest": "^2.0.11",
+    "@types/textract": "^2.4.5",
     "@typescript-eslint/eslint-plugin": "^5.0.0",
     "@typescript-eslint/parser": "^5.0.0",
     "eslint": "^8.0.1",

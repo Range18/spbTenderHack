@@ -31,7 +31,6 @@ export class HttpExceptionFilter implements ExceptionFilter {
     const type = exception instanceof ApiException ? exception.type : undefined;
 
     if (statusCode === HttpStatus.INTERNAL_SERVER_ERROR) {
-      console.log(host.getArgs(), host.getType());
       console.log(exception);
     }
 

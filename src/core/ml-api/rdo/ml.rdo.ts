@@ -1,5 +1,5 @@
 export class MlRdo {
-  KC: string;
+  KC?: string;
 
   PK?: string;
 

@@ -28,8 +28,6 @@ export class ResultEntity {
   @Column({ default: false })
   isCompleted: boolean;
 
-  @OneToMany(() => CriteriaEntity, (criteria) => criteria.result, {
-    eager: true,
-  })
+  @OneToMany(() => CriteriaEntity, (criteria) => criteria.result)
   criteria?: CriteriaEntity[];
 }

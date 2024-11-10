@@ -8,7 +8,7 @@ export const typeOrmConfig: TypeOrmModuleOptions = {
   password: get('DATABASE_PASSWORD').required().asString(),
   database: get('DATABASE_NAME').required().asString(),
   synchronize: get('DATABASE_SYNC').default('true').asBool(),
-  dropSchema: get('DATABASE_DROP').default('true').asBool(),
+  dropSchema: get('DATABASE_DROP').default('false').asBool(),
   type: 'mysql',
   autoLoadEntities: true,
 };

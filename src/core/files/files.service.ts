@@ -6,6 +6,7 @@ import { AuctionFileRdo } from '#src/core/auctions/rdo/auction-file.rdo';
 import { mainConfig } from '#src/common/configs/main.config';
 import * as path from 'node:path';
 import { getPDFJS } from '#src/common/utils/pdfjs-import';
+import WordExtractor from 'word-extractor';
 
 @Injectable()
 export class FilesService {
@@ -30,7 +31,7 @@ export class FilesService {
         return {
           id: file.id,
           filename: file.name,
-          text: await this.parseDocx(file),
+          text: await this.parseDoc(file),
         };
 
       case '.pdf':
@@ -42,8 +43,23 @@ export class FilesService {
 
       default:
         Logger.warn(`${path.extname(file.name)} not supported`);
-        return;
+        return {
+          id: file.id,
+          filename: file.name,
+          text: '',
+        };
     }
+  }
+
+  private async parseDoc(file: AuctionFileRdo) {
+    const response = await this.mosRuApiService
+      .getHttpClient()
+      .get('/FileStorage/Download?id=' + file.id, {
+        responseType: 'arraybuffer',
+      });
+    const extractor = new WordExtractor();
+    const text = await extractor.extract(response.data);
+    return text.getBody();
   }
 
   private async parseDocx(file: AuctionFileRdo) {

@@ -6,7 +6,6 @@ import { FilesService } from '#src/core/files/files.service';
 import { ReasonsToClose } from '#src/core/auctions/types/reasons-to-close.enum';
 import { AnalyticsRdo } from '#src/core/results/rdo/analytics.rdo';
 import { CheckAuctionsDto } from '#src/core/auctions/dto/check-auctions.dto';
-import { GroupsService } from '#src/core/results/groups.service';
 import { ResultsService } from '#src/core/results/results.service';
 import { MlApiService } from '#src/core/ml-api/ml-api.service';
 import { CriteriaService } from '#src/core/results/criteria.service';
@@ -22,7 +21,6 @@ export class AuctionsService {
   constructor(
     private readonly mosRuApiService: MosRuApiService,
     private readonly filesService: FilesService,
-    private readonly groupService: GroupsService,
     private readonly resultsService: ResultsService,
     private readonly criteriaService: CriteriaService,
     private readonly resultCacheService: ResultCacheService,
@@ -37,10 +35,8 @@ export class AuctionsService {
     const auctionIds = checkAuctionsDto.urls.map((url) =>
       this.parseAuctionId(url),
     );
-    const group = await this.groupService.save({});
-
-    const resultCachedEntities =
-      await this.resultCacheService.createNewAndGetCached(group, auctionIds);
+    const { resultCachedEntities, group } =
+      await this.resultCacheService.createNewAndGetCached(auctionIds);
 
     const criteriaSet = new Set(checkAuctionsDto.criteria);
     for (const url of checkAuctionsDto.urls) {
@@ -61,7 +57,7 @@ export class AuctionsService {
         Array.from(criteriaToCalculate).sort(),
       );
 
-      console.log(result);
+      console.log('result', result);
       const resultEntity = await this.resultsService.updateOne(
         { auctionId },
         {
@@ -71,12 +67,7 @@ export class AuctionsService {
         },
       );
 
-      // for (const criteria of result.table) {
-      //   await this.criteriaService.save({
-      //     ...criteria,
-      //     result: { auctionId },
-      //   });
-      // }
+      await this.criteriaService.saveMany(auctionId, result.table);
     }
 
     return group.id;
@@ -106,6 +97,8 @@ export class AuctionsService {
     const files = await this.filesService.getFilesPayload(
       auctionResponse.data.files,
     );
+
+    console.log(files);
     const taskFile = files.find((file) =>
       IsIncludes(file.filename, ['тз', 'тех', 'задание', 'техническое']),
     );
@@ -121,14 +114,21 @@ export class AuctionsService {
       return { url: url, isPublished: false, auctionId, reason: reason };
     }
 
-    const table = await this.CalculateCriteria(
+    const criteriaTable = await this.CalculateCriteria(
       auctionResponse.data,
       taskFile,
       contractProjectFile,
       criteria,
     );
 
-    return { url, isPublished: true, auctionId, table: table };
+    return {
+      url,
+      isPublished: criteriaTable.every((entry) =>
+        typeof entry.isOk == 'string' ? entry.isOk == 'True' : entry.isOk,
+      ),
+      auctionId,
+      table: criteriaTable,
+    };
   }
 
   private checkFiles(
@@ -163,9 +163,8 @@ export class AuctionsService {
             taskFile,
             contractProjectFile,
           );
-
           criteriaResults.push({
-            name: '1 критерий',
+            name: 'Наименование закупки',
             isOk: first.status,
             cardValue: first.KC,
             taskFileValue: first.TZ,
@@ -178,14 +177,12 @@ export class AuctionsService {
         case 2: {
           const second = await this.mlApiService.checkSecondPoint(
             auctionData,
-            taskFile,
             contractProjectFile,
           );
-
           criteriaResults.push({
-            name: '2 критерий',
+            name: 'Обеспечение исполнения контракта',
             type: 2,
-            isOk: second,
+            isOk: second.status,
           });
 
           break;
@@ -197,7 +194,7 @@ export class AuctionsService {
             contractProjectFile,
           );
           criteriaResults.push({
-            name: '3 критерий',
+            name: 'Требования к сертификатам/лицензиям',
             type: 3,
             isOk: third.status,
             cardValue: third.KC,
@@ -214,12 +211,9 @@ export class AuctionsService {
             contractProjectFile,
           );
           criteriaResults.push({
-            name: '4 критерий',
+            name: 'График и этапы поставки',
             type: 4,
-            isOk: fourth.status,
-            cardValue: fourth.KC,
-            taskFileValue: fourth.TZ,
-            contractProjectFileValue: fourth.PK,
+            isOk: fourth.TZ && fourth.PK,
           });
           break;
         }
@@ -230,7 +224,7 @@ export class AuctionsService {
             contractProjectFile,
           );
           criteriaResults.push({
-            name: '5 критерий',
+            name: 'Тип ценовой информации',
             type: 5,
             isOk: fifth.status,
             cardValue: fifth.KC,
@@ -246,7 +240,7 @@ export class AuctionsService {
             taskFile,
           );
           criteriaResults.push({
-            name: '6 критерий',
+            name: 'Спецификация товаров/услуг',
             type: 6,
             isOk: six.status,
             cardValue: six.KC,
@@ -254,6 +248,17 @@ export class AuctionsService {
             contractProjectFileValue: six.PK,
           });
           break;
+        }
+        case 7: {
+          ('Реквизиты Заказчика');
+        }
+
+        case 8: {
+          ('Правильность выбранной категории');
+        }
+
+        case 9: {
+          ('Проверка на грамматические ошибки');
         }
       }
     }

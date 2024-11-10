@@ -29,8 +29,8 @@ export class CriteriaEntity {
   cardValue?: string;
 
   @Column({ nullable: true, type: 'longtext' })
-  TaskFileValue?: string;
+  taskFileValue?: string;
 
   @Column({ nullable: true, type: 'longtext' })
-  ContractProjectFileValue?: string;
+  contractProjectFileValue?: string;
 }

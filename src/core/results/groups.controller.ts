@@ -1,4 +1,4 @@
-import { Controller, Get, Query } from '@nestjs/common';
+import { Controller, Get, NotFoundException, Query } from '@nestjs/common';
 import { GroupsService } from '#src/core/results/groups.service';
 import { GroupRdo } from '#src/core/results/rdo/group.rdo';
 
@@ -10,8 +10,10 @@ export class GroupsController {
   async getGroup(@Query('groupsId') groupId: number): Promise<GroupRdo> {
     const group = await this.groupsService.findOne({
       where: { id: groupId },
-      relations: { results: true },
+      relations: { results: { criteria: true } },
     });
+
+    if (!group) throw new NotFoundException(`Group ${groupId} not found`);
 
     return new GroupRdo(group);
   }
